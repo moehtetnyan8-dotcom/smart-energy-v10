@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Guard | Smart Energy Monitor</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/lucide.min.js"></script>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-gauges@2.1.7/gauge.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --accent: #0ea5e9;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * { font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); margin: 0; overflow: hidden; }
+
+        /* Navigation Layers */
+        .view-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 10; }
+        .active-view { display: flex !important; }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        /* Login Layout */
+        .auth-left-gradient { background: radial-gradient(circle at center, #1e40af 0%, #0f172a 100%); }
+        .cyber-input { background: #020617; border: 1px solid #334155; color: white; border-radius: 8px; transition: all 0.2s; }
+        .cyber-input:focus { border-color: #0ea5e9; ring: 2px solid #0ea5e9; outline: none; }
+
+        /* Dashboard Components */
+        .pro-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
+        .lcd-display { background: #020617; border-radius: 6px; border: 1px solid #334155; padding: 12px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .dot-pulse { animation: pulse 2s infinite; }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        /* Toggle Switches */
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background: #475569; border-radius: 34px; transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .4s; }
+        input:checked + .slider { background: #0ea5e9; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .btn-mode { padding: 8px 16px; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.05em; border: 1px solid #334155; transition: 0.3s; }
+        .btn-mode.active { background: #0ea5e9; border-color: #0ea5e9; color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- STEP 1: MODERN LOGIN PAGE -->
+    <div id="auth-page" class="view-layer active-view flex-row">
+        <div class="auth-left-gradient flex-[1.3] flex flex-col items-center justify-center relative p-12 overflow-hidden">
+            <!-- Background Decorative Grid -->
+            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 40px 40px;"></div>
+            <div class="z-10 text-center">
+                <div class="bg-sky-500/20 p-6 rounded-3xl inline-block mb-8 border border-sky-500/30">
+                    <i data-lucide="zap" class="w-16 h-16 text-sky-400"></i>
+                </div>
+                <h1 class="text-6xl font-extrabold tracking-tighter text-white mb-4 uppercase">Smart Energy Monitor</h1>
+                <p class="text-sky-300 text-lg font-medium opacity-80 uppercase tracking-[0.4em]">IoT-Based Monitoring & Control</p>
+                <div class="w-24 h-1 bg-sky-500 mx-auto mt-10 rounded-full"></div>
+            </div>
+        </div>
+        <div class="flex-[0.7] bg-[#020617] flex items-center justify-center p-12">
+            <div class="w-full max-w-md">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-white mb-2">Welcome Back</h2>
+                    <p class="text-slate-500 text-sm">Sign in to the energy management terminal</p>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Email Address</label>
+                        <input type="email" id="email" placeholder="name@company.com" class="cyber-input w-full p-4">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Password</label>
+                        <div class="relative">
+                            <input type="password" id="pass" placeholder="••••••••" class="cyber-input w-full p-4 pr-12">
+                            <button onclick="togglePassword()" class="absolute right-4 top-4 text-slate-500 hover:text-white">
+                                <i data-lucide="eye" id="eye-icon" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button onclick="handleAuth()" id="auth-btn" class="w-full py-4 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-sky-900/20 uppercase tracking-widest text-sm">Sign In</button>
+                    
+                    <div class="flex flex-col items-center gap-4 mt-8">
+                        <p onclick="toggleReg()" id="reg-text" class="text-sm text-sky-500 hover:text-white cursor-pointer transition-colors font-medium">Create New Account</p>
+                        <p id="err" class="text-red-500 text-xs font-bold text-center"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 2: INFORMATION PAGE -->
+    <div id="info-page" class="view-layer items-center justify-center p-12">
+        <div class="max-w-4xl w-full flex flex-col md:flex-row gap-16 items-center">
+            <div class="flex-1 space-y-6">
+                <div class="inline-block px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+                    <span class="text-green-500 text-xs font-bold uppercase tracking-widest">Protocol Verified</span>
+                </div>
+                <h1 class="text-6xl font-black text-white leading-none">Terminal <br><span class="text-sky-500">Ready.</span></h1>
+                <p class="text-slate-400 text-lg leading-relaxed">Safety cutoff is enabled at 214V. Real-time data streaming and cloud synchronization is standing by for bachelor project execution.</p>
+            </div>
+            <div class="flex-1 pro-card p-12 text-center">
+                <i data-lucide="shield-check" class="w-20 h-20 text-sky-500 mx-auto mb-8"></i>
+                <button onclick="startProject()" class="w-full px-8 py-6 bg-sky-600 text-white text-xl font-black rounded-xl hover:bg-sky-500 transition-all uppercase shadow-2xl">
+                    Start Your New Project
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 3: MAIN DASHBOARD -->
+    <div id="dashboard" class="view-layer flex-row">
+        <!-- Sidebar -->
+        <aside class="w-72 border-r border-slate-800 flex flex-col p-8 hidden lg:flex">
+            <div class="mb-12">
+                <h1 class="text-xl font-black tracking-tight text-white">Smart Monitor</h1>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">Industrial Grade v10.0</p>
+            </div>
+            <nav class="space-y-2 flex-1">
+                <a href="#" class="flex items-center gap-3 p-3 bg-sky-600/10 text-sky-400 rounded-lg font-semibold"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a>
+                <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors"><i data-lucide="activity" class="w-5 h-5"></i> Live Monitoring</a>
+                <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors"><i data-lucide="cpu" class="w-5 h-5"></i> Load Control</a>
+                <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors"><i data-lucide="history" class="w-5 h-5"></i> Energy History</a>
+                <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors"><i data-lucide="bell" class="w-5 h-5"></i> Alerts</a>
+                <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors"><i data-lucide="settings" class="w-5 h-5"></i> Settings</a>
+            </nav>
+            <div class="pt-8 border-t border-slate-800">
+                <button onclick="logout()" class="flex items-center gap-3 p-3 text-red-400 hover:bg-red-500/10 w-full rounded-lg transition-colors font-medium"><i data-lucide="log-out" class="w-5 h-5"></i> Logout Terminal</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-y-auto">
+            <!-- Top Header -->
+            <header class="h-20 bg-slate-900/50 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-10 sticky top-0 z-20">
+                <div class="flex items-center gap-6">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-widest">Energy Dashboard</h2>
+                    <div class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                        <span class="status-dot bg-green-500 dot-pulse"></span>
+                        <span class="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">System Online</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button onclick="exportCSV()" class="flex items-center gap-2 px-4 py-2 border border-slate-700 hover:bg-slate-800 text-xs font-bold rounded-lg transition-all uppercase">
+                        <i data-lucide="download" class="w-4 h-4"></i> Export Data
+                    </button>
+                    <div class="h-8 w-[1px] bg-slate-700 mx-2"></div>
+                    <div class="text-right">
+                        <p id="u-name" class="text-xs font-bold text-white">OPERATOR</p>
+                        <p id="mode-tag" class="text-[9px] text-sky-500 font-black uppercase">MODE: MANUAL</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-10 space-y-8">
+                <!-- Summary High-Level Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                    <div class="pro-card p-6 border-l-4 border-sky-500">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase">Voltage</span>
+                            <i data-lucide="zap" class="w-4 h-4 text-sky-500"></i>
+                        </div>
+                        <div class="text-2xl font-black" id="txt-voltage">0.00 V</div>
+                    </div>
+                    <div class="pro-card p-6 border-l-4 border-amber-500">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase">Current</span>
+                            <i data-lucide="activity" class="w-4 h-4 text-amber-500"></i>
+                        </div>
+                        <div class="text-2xl font-black" id="txt-current">0.000 A</div>
+                    </div>
+                    <div class="pro-card p-6 border-l-4 border-green-500">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase">Power</span>
+                            <i data-lucide="battery-charging" class="w-4 h-4 text-green-500"></i>
+                        </div>
+                        <div class="text-2xl font-black" id="txt-active_power">0.00 W</div>
+                    </div>
+                    <div class="pro-card p-6 border-l-4 border-purple-500">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase">Freq</span>
+                            <i data-lucide="waves" class="w-4 h-4 text-purple-500"></i>
+                        </div>
+                        <div class="text-2xl font-black" id="txt-frequency">0.00 Hz</div>
+                    </div>
+                    <div class="pro-card p-6 border-l-4 border-pink-500">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase">PF</span>
+                            <i data-lucide="percent" class="w-4 h-4 text-pink-500"></i>
+                        </div>
+                        <div class="text-2xl font-black" id="txt-power_factor">0.00</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col lg:flex-row gap-8">
+                    <!-- Live Gauges Section -->
+                    <div class="flex-1 pro-card p-8">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-slate-500 mb-8 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 bg-sky-500 rounded-full"></span> Live Electrical Monitoring
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" id="gauge-container"></div>
+                    </div>
+
+                    <!-- Side Controls -->
+                    <div class="w-full lg:w-80 space-y-6">
+                        <!-- Relay Control -->
+                        <div class="pro-card p-6">
+                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-6 border-b border-slate-800 pb-3">Load Control</h3>
+                            <div class="space-y-6">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-semibold">Load 1</span>
+                                    <label class="switch"><input type="checkbox" id="sw1" onchange="ctrl('led1', this)"><span class="slider"></span></label>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-semibold">Load 2</span>
+                                    <label class="switch"><input type="checkbox" id="sw2" onchange="ctrl('led2', this)"><span class="slider"></span></label>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-semibold">Load 3</span>
+                                    <label class="switch"><input type="checkbox" id="sw3" onchange="ctrl('led3', this)"><span class="slider"></span></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mode Setting -->
+                        <div class="pro-card p-6">
+                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-6">Operation Mode</h3>
+                            <div class="flex rounded-lg overflow-hidden border border-slate-700 mb-4">
+                                <button id="m-man" class="btn-mode active flex-1" onclick="setMode('MANUAL')">MANUAL</button>
+                                <button id="m-auto" class="btn-mode flex-1 text-slate-400" onclick="setMode('AUTO')">AUTO</button>
+                            </div>
+                            <p id="mode-desc" class="text-[10px] text-slate-500 leading-relaxed italic">Loads are controlled manually by the authorized user.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart and Demand Row -->
+                <div class="flex flex-col lg:flex-row gap-8">
+                    <!-- Chart -->
+                    <div class="flex-1 pro-card p-8">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-slate-500 mb-6">Energy Consumption Trend</h3>
+                        <canvas id="liveChart" height="120"></canvas>
+                    </div>
+                    
+                    <!-- Max Demand & Protection -->
+                    <div class="w-full lg:w-96 space-y-8">
+                        <div class="pro-card p-8 bg-gradient-to-br from-slate-800 to-slate-900 border-t-4 border-blue-500">
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4">Maximum Demand</h3>
+                            <div class="text-6xl font-black text-white" id="val-total">0.00</div>
+                            <div class="text-sm font-bold text-sky-500 mt-2 uppercase tracking-tighter">kW Peak Load</div>
+                        </div>
+
+                        <!-- Voltage Guard -->
+                        <div class="pro-card p-6" id="v-guard-card">
+                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-4">Voltage Protection</h3>
+                            <div id="v-status-badge" class="flex items-center gap-2 mb-6">
+                                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                <span class="text-xs font-bold text-green-500 uppercase" id="v-status-text">Protection Active</span>
+                            </div>
+                            <div id="admin-settings" class="hidden space-y-3">
+                                <label class="text-[10px] text-slate-400 uppercase font-bold">Cutoff Threshold (V)</label>
+                                <div class="flex gap-2">
+                                    <input type="number" id="v-set" value="214" class="cyber-input flex-1 p-2 text-sm">
+                                    <button onclick="saveThreshold()" class="bg-sky-600 px-4 py-2 rounded-lg text-xs font-bold uppercase">Set</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="h-10"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Alert Banner -->
+    <div id="high-v-alert" class="hidden fixed top-0 left-0 w-full bg-red-600 text-white p-4 z-[1000] text-center font-bold animate-bounce shadow-2xl">
+        HIGH VOLTAGE ALERT — Voltage exceeded the configured safety threshold!
+    </div>
+
+    <script>
+        // Supabase Initialization
+        const _supabase = supabase.createClient('https://fjtvytuknssvkfrqcxqb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdHZ5dHVrbnNzdmtmcnFjeHFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMjg2OTksImV4cCI6MjA5OTcwNDY5OX0.j7gC7k8vCjf0cZWvKbWax19cJZn0ALEFV5LvzFblyTc');
+        const ADMIN_EMAIL = "moehtetnyan8@gmail.com";
+        let isAdmin = false, currentMode = "MANUAL", isLoginMode = true, vLimit = 214;
+        let chartInstance;
+
+        // View Controller
+        function showView(id) {
+            document.querySelectorAll('.view-layer').forEach(l => l.classList.remove('active-view'));
+            document.getElementById(id).classList.add('active-view');
+        }
+
+        // Auth Logic
+        function toggleReg() {
+            isLoginMode = !isLoginMode;
+            document.querySelector('#auth-page h2').innerText = isLoginMode ? "Welcome Back" : "Create Account";
+            document.getElementById('auth-btn').innerText = isLoginMode ? "Sign In" : "Register";
+            document.getElementById('reg-text').innerText = isLoginMode ? "Create New Account" : "Back to Login";
+        }
+
+        async function handleAuth() {
+            const e = document.getElementById('email').value, p = document.getElementById('pass').value;
+            const { data, error } = isLoginMode ? await _supabase.auth.signInWithPassword({ email: e, password: p }) : await _supabase.auth.signUp({ email: e, password: p });
+            if (error) document.getElementById('err').innerText = error.message;
+            else if (!isLoginMode) { alert("Verification required."); location.reload(); }
+            else checkSession();
+        }
+
+        async function checkSession() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (user) {
+                isAdmin = (user.email.toLowerCase() === ADMIN_EMAIL);
+                document.getElementById('u-name').innerText = user.email.toUpperCase();
+                if(isAdmin) document.getElementById('admin-settings').classList.remove('hidden');
+                showView('info-page');
+            }
+        }
+
+        function startProject() {
+            showView('dashboard');
+            initSystem();
+            initChart();
+        }
+
+        // --- DASHBOARD LOGIC ---
+        const metrics = [
+            { k: 'voltage', l: 'Voltage', u: 'V', min: 100, max: 300, ticks: ["100","200","300"] },
+            { k: 'frequency', l: 'Frequency', u: 'Hz', min: 45, max: 65, ticks: ["45","55","65"] },
+            { k: 'current', l: 'Current', u: 'A', min: 0, max: 2, ticks: ["0","1","2"] },
+            { k: 'power_factor', l: 'PF', u: 'PF', min: 0, max: 1, ticks: ["0",".5","1"] },
+            { k: 'active_power', l: 'Power', u: 'W', min: 0, max: 50, ticks: ["0","25","50"] }
+        ];
+
+        let gs = {};
+        function initSystem() {
+            const container = document.getElementById('gauge-container');
+            if (container.innerHTML !== "") return;
+            metrics.forEach(m => {
+                const card = document.createElement('div'); card.className = "flex flex-col items-center";
+                card.innerHTML = `<canvas id="g-${m.k}"></canvas><div class="lcd-display mt-4 w-full text-lg font-bold"><span id="val-${m.k}">0.00</span> <small class="text-sky-500 font-bold">${m.u}</small></div>`;
+                container.appendChild(card);
+                gs[m.k] = new RadialGauge({ 
+                    renderTo: `g-${m.k}`, width: 150, height: 150, minValue: m.min, maxValue: m.max, majorTicks: m.ticks, 
+                    colorPlate: "transparent", colorNumbers: "#94a3b8", borders: false, needleType: "arrow", 
+                    colorNeedle: "#0ea5e9", animationDuration: 500, fontNumbers: "Inter", colorMajorTicks: "#334155" 
+                }).draw();
+            });
+
+            _supabase.channel('telemetry').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'telemetry' }, p => {
+                const d = p.new;
+                updateData(d);
+            }).subscribe();
+        }
+
+        function updateData(d) {
+            metrics.forEach(m => { 
+                if(gs[m.k]) gs[m.k].value = d[m.k]; 
+                document.getElementById(`txt-${m.k}`).innerText = parseFloat(d[m.k]).toFixed(2) + " " + m.u;
+                document.getElementById(`val-${m.k}`).innerText = parseFloat(d[m.k]).toFixed(2);
+            });
+            document.getElementById('val-total').innerText = parseFloat(d.max_export_demand).toFixed(2);
+            
+            // Update Chart
+            updateChart(d.voltage);
+
+            // Voltage Protection Logic
+            const alertBanner = document.getElementById('high-v-alert');
+            const vCard = document.getElementById('v-guard-card');
+            const vStatusText = document.getElementById('v-status-text');
+            const vStatusDot = document.querySelector('#v-status-badge span');
+
+            if (d.voltage > vLimit) {
+                alertBanner.classList.remove('hidden');
+                vCard.style.borderColor = "#ef4444";
+                vStatusText.innerText = "HIGH VOLTAGE";
+                vStatusText.classList.replace('text-green-500', 'text-red-500');
+                vStatusDot.classList.replace('bg-green-500', 'bg-red-500');
+
+                if (currentMode === "AUTO") {
+                    document.getElementById('sw1').checked = false;
+                }
+                if (Notification.permission === "granted") new Notification("Voltage Warning", { body: "System threshold exceeded!" });
+            } else {
+                alertBanner.classList.add('hidden');
+                vCard.style.borderColor = "#334155";
+                vStatusText.innerText = "Protection Active";
+                vStatusText.classList.replace('text-red-500', 'text-green-500');
+                vStatusDot.classList.replace('bg-red-500', 'bg-green-500');
+            }
+        }
+
+        // Mode Controller
+        async function setMode(m) {
+            if (m === 'AUTO' && !isAdmin) return alert("Administrator credentials required for Auto-Mode.");
+            currentMode = m;
+            document.getElementById('m-man').classList.toggle('active', m === 'MANUAL');
+            document.getElementById('m-auto').classList.toggle('active', m === 'AUTO');
+            document.getElementById('mode-tag').innerText = "MODE: " + m;
+            document.getElementById('mode-desc').innerText = m === 'MANUAL' ? "Loads are controlled manually by the authorized user." : "The system automatically protects loads according to safety thresholds.";
+            await fetch('/api/control-led', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ mode: m }) });
+        }
+
+        async function ctrl(target, el) {
+            if(!isAdmin) { el.checked = !el.checked; return alert("Hardware write access restricted."); }
+            await fetch('/api/control-led', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ target, status: el.checked ? "ON" : "OFF" }) });
+        }
+
+        async function saveThreshold() {
+            vLimit = document.getElementById('v-set').value;
+            await fetch('/api/control-led', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ newThreshold: vLimit }) });
+            alert("V-THRESHOLD SYNCED: " + vLimit + "V");
+        }
+
+        async function exportCSV() {
+            if(!isAdmin) return alert("Admin signature required for data extraction.");
+            const { data } = await _supabase.from('telemetry').select('*').order('created_at', { ascending: false }).limit(1000);
+            let csv = "Time,V,A,Hz,PF,W,ExportDemand\n" + data.map(r => `${r.created_at},${r.voltage},${r.current},${r.frequency},${r.power_factor},${r.active_power},${r.max_export_demand}`).join("\n");
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = "Grid_Telemetry_Master.csv"; a.click();
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('liveChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(20).fill(''),
+                    datasets: [{
+                        label: 'Voltage (V)',
+                        data: Array(20).fill(null),
+                        borderColor: '#0ea5e9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 180, max: 250, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function updateChart(val) {
+            chartInstance.data.datasets[0].data.shift();
+            chartInstance.data.datasets[0].data.push(val);
+            chartInstance.update('none');
+        }
+
+        function togglePassword() {
+            const p = document.getElementById('pass');
+            const icon = document.getElementById('eye-icon');
+            if (p.type === "password") {
+                p.type = "text";
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                p.type = "password";
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        function logout() { _supabase.auth.signOut(); location.reload(); }
+        window.onload = () => { lucide.createIcons(); checkSession(); };
+    </script>
+</body>
+</html>
