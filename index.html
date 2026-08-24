@@ -373,11 +373,17 @@
                 }).draw();
             });
 
-            _supabase.channel('telemetry').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'telemetry' }, p => {
-                const d = p.new;
-                updateData(d);
-            }).subscribe();
-        }
+           _supabase.channel('telemetry').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'telemetry' }, p => {
+    const d = p.new;
+    metrics.forEach(m => {
+        if(gs[m.k]) gs[m.k].value = d[m.k];
+        const topVal = document.getElementById(`txt-${m.k}`);
+        // This line updates the 0.00 cards at the top
+        if(topVal) topVal.innerText = parseFloat(d[m.k] || 0).toFixed(m.k === 'current' ? 3 : 2) + " " + m.u;
+    });
+    // This line updates the Big Core at the bottom
+    document.getElementById('val-total').innerText = parseFloat(d.max_export_demand || 0).toFixed(2);
+}).subscribe();
 
         function updateData(d) {
             metrics.forEach(m => { 
