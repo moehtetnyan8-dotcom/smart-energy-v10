@@ -37,16 +37,16 @@ async function sendTelegram(msg) {
 }
 
 // 1. ESP32 DATA INPUT
-app.post('/api/energy-data', async (req, res) => {
-    const d = req.body;
-    lastTelemetry = {
-        voltage: parseFloat(d.voltage || 0),
-        current: parseFloat(d.current || 0),
-        frequency: parseFloat(d.frequency || 0),
-        power_factor: parseFloat(d.powerFactor || 0),
-        active_power: parseFloat(d.activePower || 0),
-        max_export_demand: parseFloat(d.totalDemand || 0)
-    };
+const d = req.body; 
+
+const { error } = await supabase.from('telemetry').insert([{
+    voltage: parseFloat(d.voltage || 0),
+    current: parseFloat(d.current || 0),
+    frequency: parseFloat(d.frequency || 0),
+    power_factor: parseFloat(d.power_factor || 0), // MATCHING ARDUINO
+    active_power: parseFloat(d.active_power || 0), // MATCHING ARDUINO
+    max_export_demand: parseFloat(d.max_export_demand || 0) // MATCHING ARDUINO
+}]);
 
     // AUTO PROTECTION
     if (systemMode === "AUTO" && lastTelemetry.voltage > vThreshold) {
