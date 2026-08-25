@@ -6,6 +6,7 @@
     <title>Elite Guard | Smart Energy Monitor</title>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/lucide.min.js"></script>
     
     <!-- Libraries -->
@@ -15,6 +16,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
         :root {
             --bg-main: #0f172a;
             --bg-card: #1e293b;
@@ -63,6 +68,88 @@
 
         .btn-mode { padding: 8px 16px; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.05em; border: 1px solid #334155; transition: 0.3s; }
         .btn-mode.active { background: #0ea5e9; border-color: #0ea5e9; color: white; }
+
+        .dashboardLink:hover{
+            letter-spacing: 0.3rem;
+            font-size: 1.1rem;
+            border: 1px solid skyblue;
+            box-shadow: 2px 2px 5px cyan;
+        }
+
+        .monitorLink:hover{
+            letter-spacing: 0.3rem;
+            font-size: 1.1rem;
+            border: 1px solid skyblue;
+            box-shadow: 2px 2px 5px cyan;
+        }
+
+        .loadControlLink:hover{
+            letter-spacing: 0.3rem;
+            font-size: 1.1rem;
+            border: 1px solid skyblue;
+            box-shadow: 2px 2px 5px cyan;
+        }
+
+        .energyLink:hover{
+            letter-spacing: 0.3rem;
+            font-size: 1.1rem;
+            border: 1px solid skyblue;
+            box-shadow: 2px 2px 5px cyan;
+        }
+
+        .alertLink:hover{
+            letter-spacing: 0.3rem;
+            font-size: 1.1rem;
+            border: 1px solid skyblue;
+            box-shadow: 2px 2px 5px cyan;
+        }
+
+        .settingLink:hover{
+            letter-spacing: 0.3rem;
+            font-size: 1.1rem;
+            border: 1px solid skyblue;
+            box-shadow: 2px 2px 5px cyan;
+        }
+
+       .section {
+            transition: 
+                border-color 0.4s ease,
+                box-shadow 0.4s ease,
+                background-color 0.4s ease,
+                transform 0.4s ease;
+        }
+
+        .section.active {
+            border: 2px solid skyblue;
+            box-shadow: 0 0 15px rgb(30, 74, 1);
+            transform: scale(1.01);
+            padding: 8px;
+        }
+
+        #Alert.active {
+            border: 2px solid #ef4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.7);
+            background-color: rgba(239, 68, 68, 0.05);
+            transform: scale(1.01);
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+
+        .nav-link.active-link {
+            background-color: rgba(14, 165, 233, 0.1);
+            color: #38bdf8;
+            border: 1px solid #38bdf8;
+            box-shadow: 0 0 8px rgba(34, 211, 238, 0.4);
+        }
+
+        .alertLink.active-link {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-color: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -142,12 +229,12 @@
                 <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">Industrial Grade v10.0</p>
             </div>
             <nav class="space-y-2 flex-1">
-                <a href="#" class="flex items-center gap-3 p-3 bg-sky-600/10 text-sky-400 rounded-lg font-semibold"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a>
-                <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors"><i data-lucide="activity" class="w-5 h-5"></i> Live Monitoring</a>
-                <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors"><i data-lucide="cpu" class="w-5 h-5"></i> Load Control</a>
-                <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors"><i data-lucide="history" class="w-5 h-5"></i> Energy History</a>
-                <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors"><i data-lucide="bell" class="w-5 h-5"></i> Alerts</a>
-                <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors"><i data-lucide="settings" class="w-5 h-5"></i> Settings</a>
+                <a href="#MainDashboard" class="nav-link active-link flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg font-semibold dashboardLink jumpLink"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> <i class="bi bi-speedometer"></i> Dashboard</a>
+                <a href="#Guages" class="nav-link flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors monitorLink jumpLink"><i data-lucide="activity" class="w-5 h-5"></i> <i class="bi bi-display"></i> Live Monitoring</a>
+                <a href="#Loadcontrol" class="nav-link flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors loadControlLink jumpLink"><i data-lucide="cpu" class="w-5 h-5"></i> <i class="bi bi-segmented-nav"></i>Load Control</a>
+                <a href="#EnergyHistory" class="nav-link flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors energyLink jumpLink"><i data-lucide="history" class="w-5 h-5"></i> <i class="bi bi-clock-history"></i>Energy History</a>
+                <a href="#Alert" class="nav-link flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors alertLink jumpLink"><i data-lucide="bell" class="w-5 h-5"></i><i class="bi bi-exclamation-octagon"></i> Alerts</a>
+                <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors settingLink"><i data-lucide="settings" class="w-5 h-5"></i> <i class="bi bi-gear-wide-connected"></i>Settings</a>
             </nav>
             <div class="pt-8 border-t border-slate-800">
                 <button onclick="logout()" class="flex items-center gap-3 p-3 text-red-400 hover:bg-red-500/10 w-full rounded-lg transition-colors font-medium"><i data-lucide="log-out" class="w-5 h-5"></i> Logout Terminal</button>
@@ -178,7 +265,7 @@
                 </div>
             </header>
 
-            <div class="p-10 space-y-8">
+            <div id="MainDashboard" class="p-10 space-y-8">
                 <!-- Summary High-Level Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                     <div class="pro-card p-6 border-l-4 border-sky-500">
@@ -218,9 +305,9 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col lg:flex-row gap-8">
+                <div class=" flex flex-col lg:flex-row gap-8" >
                     <!-- Live Gauges Section -->
-                    <div class="flex-1 pro-card p-8">
+                    <div class="section flex-1 pro-card p-8" id="Guages">
                         <h3 class="text-xs font-black uppercase tracking-widest text-slate-500 mb-8 flex items-center gap-2">
                             <span class="w-1.5 h-1.5 bg-sky-500 rounded-full"></span> Live Electrical Monitoring
                         </h3>
@@ -228,7 +315,7 @@
                     </div>
 
                     <!-- Side Controls -->
-                    <div class="w-full lg:w-80 space-y-6">
+                    <div class="section w-full lg:w-80 space-y-6" id="Loadcontrol">
                         <!-- Relay Control -->
                         <div class="pro-card p-6">
                             <h3 class="text-[10px] font-black uppercase text-slate-500 mb-6 border-b border-slate-800 pb-3">Load Control</h3>
@@ -261,7 +348,7 @@
                 </div>
 
                 <!-- Chart and Demand Row -->
-                <div class="flex flex-col lg:flex-row gap-8">
+                <div class="section flex flex-col lg:flex-row gap-8" id="EnergyHistory">
                     <!-- Chart -->
                     <div class="flex-1 pro-card p-8">
                         <h3 class="text-xs font-black uppercase tracking-widest text-slate-500 mb-6">Energy Consumption Trend</h3>
@@ -277,20 +364,22 @@
                         </div>
 
                         <!-- Voltage Guard -->
-                        <div class="pro-card p-6" id="v-guard-card">
-                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-4">Voltage Protection</h3>
-                            <div id="v-status-badge" class="flex items-center gap-2 mb-6">
-                                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                                <span class="text-xs font-bold text-green-500 uppercase" id="v-status-text">Protection Active</span>
-                            </div>
-                            <div id="admin-settings" class="hidden space-y-3">
-                                <label class="text-[10px] text-slate-400 uppercase font-bold">Cutoff Threshold (V)</label>
-                                <div class="flex gap-2">
-                                    <input type="number" id="v-set" value="214" class="cyber-input flex-1 p-2 text-sm">
-                                    <button onclick="saveThreshold()" class="bg-sky-600 px-4 py-2 rounded-lg text-xs font-bold uppercase">Set</button>
+                         <div id="Alert" class="section">
+                            <div class="pro-card p-6" id="v-guard-card">
+                                <h3 class="text-[10px] font-black uppercase text-slate-500 mb-4">Voltage Protection</h3>
+                                <div id="v-status-badge" class="flex items-center gap-2 mb-6">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    <span class="text-xs font-bold text-green-500 uppercase" id="v-status-text">Protection Active</span>
+                                </div>
+                                <div id="admin-settings" class="hidden space-y-3">
+                                    <label class="text-[10px] text-slate-400 uppercase font-bold">Cutoff Threshold (V)</label>
+                                    <div class="flex gap-2">
+                                        <input type="number" id="v-set" value="214" class="cyber-input flex-1 p-2 text-sm">
+                                        <button onclick="saveThreshold()" class="bg-sky-600 px-4 py-2 rounded-lg text-xs font-bold uppercase">Set</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                         </div>
                     </div>
                 </div>
                 
@@ -494,6 +583,40 @@
 
         function logout() { _supabase.auth.signOut(); location.reload(); }
         window.onload = () => { lucide.createIcons(); checkSession(); };
+
+        //for focuss section
+        const links = document.querySelectorAll('.jumpLink');
+        const sections = document.querySelectorAll('.section');
+
+        links.forEach(link => {
+
+        link.addEventListener('click', function () {
+
+        // 1. Remove active from all sections
+        sections.forEach(section => {
+            section.classList.remove('active');
+        });
+
+        // 2. Remove active background from all sidebar links
+        links.forEach(navLink => {
+            navLink.classList.remove('active-link');
+        });
+
+        // 3. Make clicked sidebar link active
+        this.classList.add('active-link');
+
+        // 4. Find target section
+        const targetId = this.getAttribute('href');
+        const targetSection = document.querySelector(targetId);
+
+        // 5. Make target section active
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
+
+    });
+
+});
     </script>
 </body>
 </html>
