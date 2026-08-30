@@ -507,13 +507,16 @@
 
         // Mode Controller
         async function setMode(m) {
-            if (m === 'AUTO' && !isAdmin) return alert("Administrator credentials required for Auto-Mode.");
+            // Admin check removed - All users can access
             currentMode = m;
             document.getElementById('m-man').classList.toggle('active', m === 'MANUAL');
             document.getElementById('m-auto').classList.toggle('active', m === 'AUTO');
             document.getElementById('mode-tag').innerText = "MODE: " + m;
-            document.getElementById('mode-desc').innerText = m === 'MANUAL' ? "Loads are controlled manually by the authorized user." : "The system automatically protects loads according to safety thresholds.";
-            await fetch('/api/control-led', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ mode: m }) });
+            await fetch('/api/control-led', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ mode: m }) 
+            });
         }
 
         async function ctrl(target, el) {
