@@ -520,9 +520,13 @@
         }
 
         async function ctrl(target, el) {
-            if(!isAdmin) { el.checked = !el.checked; return alert("Hardware write access restricted."); }
-            await fetch('/api/control-led', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ target, status: el.checked ? "ON" : "OFF" }) });
-        }
+    // Admin check removed - All users can access
+        await fetch('/api/control-led', { 
+        method: 'POST', 
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify({ target, status: el.checked ? "ON" : "OFF" }) 
+        });
+    }
 
         async function saveThreshold() {
             vLimit = document.getElementById('v-set').value;
@@ -531,10 +535,13 @@
         }
 
         async function exportCSV() {
-            if(!isAdmin) return alert("Admin signature required for data extraction.");
+    // Admin check removed - All users can access
             const { data } = await _supabase.from('telemetry').select('*').order('created_at', { ascending: false }).limit(1000);
-            let csv = "Time,V,A,Hz,PF,W,ExportDemand\n" + data.map(r => `${r.created_at},${r.voltage},${r.current},${r.frequency},${r.power_factor},${r.active_power},${r.max_export_demand}`).join("\n");
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = "Grid_Telemetry_Master.csv"; a.click();
+            let csv = "Time,V,A,Hz,PF,W,Demand\n" + data.map(r => `${r.created_at},${r.voltage},${r.current},${r.frequency},${r.power_factor},${r.active_power},${r.max_export_demand}`).join("\n");
+            const a = document.createElement('a'); 
+            a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); 
+            a.download = "Grid_Log.csv"; 
+            a.click();
         }
 
         function initChart() {
