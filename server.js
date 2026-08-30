@@ -134,11 +134,6 @@ app.post('/api/energy-data', async (req, res) => {
                 await sendTelegram(`⚠️ High Voltage Warning!\nVoltage: ${v}V\nThreshold: ${vThreshold}V\nAction: Manual check required.`);
             }
         }
-        // --- AUTO SHUTDOWN LOGIC ---
-        if (systemMode === "AUTO" && volt > vThreshold) {
-            states.led1 = "OFF"; // This forces the instruction to the ESP32 to be OFF
-            console.log("🚨 AUTO SHUTDOWN: Voltage exceeded " + vThreshold + "V");
-        }
 
         // SAVE TO SUPABASE
         await supabase.from('telemetry').insert([{
