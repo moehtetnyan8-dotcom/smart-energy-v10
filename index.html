@@ -542,7 +542,7 @@
             a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); 
             a.download = "Grid_Log.csv"; 
             a.click();
-        }*/
+        }
 
         async function exportCSV() {
             // Check if the user is Admin (based on your previous requirements)
@@ -585,6 +585,73 @@
             const fileName = `Energy_Report_MMT_${new Date().toLocaleDateString()}.csv`;
             a.setAttribute('download', fileName);
             
+            a.click();
+        }*/
+
+        async function exportCSV() {
+            if(!isAdmin) return alert("ADMIN ACCESS REQUIRED");
+        
+            // ၁။ အချိန်ကာလများကို သတ်မှတ်ခြင်း (မြန်မာစံတော်ချိန်အတွက် တွက်ချက်ရန်)
+            const now = new Date();
+            const oneWeekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString();
+            const oneMonthAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000)).toISOString();
+        
+            // ၂။ Main Log Data ကို ဆွဲထုတ်ခြင်း (အစောင် ၁၀၀၀)
+            const { data: mainData, error: mainError } = await _supabase
+                .from('telemetry')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(1000);
+        
+            // ၃။ တစ်ပတ်စာတွက်ရန် လွန်ခဲ့သော ၇ ရက်က အစောဆုံး data ကိုယူခြင်း
+            const { data: weekStart } = await _supabase
+                .from('telemetry')
+                .select('max_export_demand')
+                .gt('created_at', oneWeekAgo)
+                .order('created_at', { ascending: true })
+                .limit(1);
+        
+            // ၄။ တစ်လစာတွက်ရန် လွန်ခဲ့သော ရက် ၃၀ က အစောဆုံး data ကိုယူခြင်း
+            const { data: monthStart } = await _supabase
+                .from('telemetry')
+                .select('max_export_demand')
+                .gt('created_at', oneMonthAgo)
+                .order('created_at', { ascending: true })
+                .limit(1);
+        
+            if (mainError) return alert("Export failed: " + mainError.message);
+        
+            // CSV Header
+            let csv = "Myanmar_Date_Time,Voltage(V),Current(A),Frequency(Hz),Power_Factor,Active_Power(W),Max_Export_Demand(kWh)\n";
+        
+            // Data Rows ထည့်ခြင်း
+            mainData.forEach(r => {
+                const myanmarTime = new Date(r.created_at).toLocaleString('en-GB', {
+                    timeZone: 'Asia/Yangon',
+                    hour12: true
+                }).replace(',', '');
+                csv += `${myanmarTime},${r.voltage},${r.current},${r.frequency},${r.power_factor},${r.active_power},${r.max_export_demand}\n`;
+            });
+        
+            // ၅။ စုစုပေါင်း သုံးစွဲမှုကို တွက်ချက်ခြင်း (လက်ရှိ kWh - အဟောင်း kWh)
+            const currentkWh = mainData[0].max_export_demand;
+            const weeklyUsage = weekStart.length > 0 ? (currentkWh - weekStart[0].max_export_demand).toFixed(2) : "0.00";
+            const monthlyUsage = monthStart.length > 0 ? (currentkWh - monthStart[0].max_export_demand).toFixed(2) : "0.00";
+        
+            // CSV ရဲ့ အောက်ဆုံးမှာ Summary ထည့်ခြင်း
+            csv += "\n--------------------------------------------------\n";
+            csv += "ENERGY CONSUMPTION SUMMARY (အနှစ်ချုပ်)\n";
+            csv += "--------------------------------------------------\n";
+            csv += `Total Energy Used (Last 7 Days), ${weeklyUsage} kWh\n`;
+            csv += `Total Energy Used (Last 30 Days), ${monthlyUsage} kWh\n`;
+            csv += "--------------------------------------------------\n";
+        
+            // Download ပြုလုပ်ခြင်း
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `Energy_Full_Report_${new Date().toLocaleDateString()}.csv`);
             a.click();
         }
 
