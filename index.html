@@ -534,13 +534,57 @@
             alert("V-THRESHOLD SYNCED: " + vLimit + "V");
         }
 
-        async function exportCSV() {
+        /*async function exportCSV() {
     // Admin check removed - All users can access
             const { data } = await _supabase.from('telemetry').select('*').order('created_at', { ascending: false }).limit(1000);
             let csv = "Time,V,A,Hz,PF,W,Demand\n" + data.map(r => `${r.created_at},${r.voltage},${r.current},${r.frequency},${r.power_factor},${r.active_power},${r.max_export_demand}`).join("\n");
             const a = document.createElement('a'); 
             a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); 
             a.download = "Grid_Log.csv"; 
+            a.click();
+        }*/
+
+        async function exportCSV() {
+            // Check if the user is Admin (based on your previous requirements)
+            if(!isAdmin) return alert("ADMIN ACCESS REQUIRED");
+        
+            // Fetch data from Supabase
+            const { data, error } = await _supabase
+                .from('telemetry')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(1000);
+        
+            if (error) {
+                alert("Export failed: " + error.message);
+                return;
+            }
+        
+            // Header for the file
+            let csv = "Myanmar_Date_Time,Voltage(V),Current(A),Frequency(Hz),Power_Factor,Active_Power(W),Max_Export_Demand(kW)\n";
+        
+            // Loop through data and convert time to Myanmar Timezone
+            data.forEach(r => {
+                // --- THIS IS THE FIX FOR MYANMAR TIME ---
+                const myanmarTime = new Date(r.created_at).toLocaleString('en-GB', {
+                    timeZone: 'Asia/Yangon',
+                    hour12: true
+                }).replace(',', ''); // Removes the comma between date and time
+        
+                // Add the row to the CSV string
+                csv += `${myanmarTime},${r.voltage},${r.current},${r.frequency},${r.power_factor},${r.active_power},${r.max_export_demand}\n`;
+            });
+        
+            // Create the download link
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            
+            // Name of the file
+            const fileName = `Energy_Report_MMT_${new Date().toLocaleDateString()}.csv`;
+            a.setAttribute('download', fileName);
+            
             a.click();
         }
 
