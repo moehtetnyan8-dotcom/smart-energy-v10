@@ -131,7 +131,7 @@ app.post('/api/energy-data', async (req, res) => {
                 states.led1 = "OFF"; 
                 await sendTelegram(`🚨 High Voltage Alert!\nVoltage: ${v}V\nThreshold: ${vThreshold}V\nAction: AUTO-SHUTDOWN EXECUTED.`);
             } else {
-                await sendTelegram(`⚠️ High Voltage Warning!\nVoltage: ${v}V\nThreshold: ${vThreshold}V\nAction: Manual check required.`);
+                await sendTelegram(`⚠️ High Voltage Warning!\nVoltage: ${v}V\nThreshold: ${vThreshold}V\nAction: Manual check required. Please go your website! link: https://smart-energy-v10.vercel.app`);
             }
         }
 
