@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
@@ -253,233 +252,263 @@ app.get('/api/get-telemetry', async (req, res) => {
 // 3. ESP32 ENERGY DATA INPUT
 // ==========================================
 
+// ==========================================
+// ESP32 ENERGY DATA INPUT
+// ==========================================
+
 app.post('/api/energy-data', async (req, res) => {
 
     try {
 
-        // ----------------------------------
+        // ==================================
         // CHECK ESP32 API KEY
-        // ----------------------------------
+        // ==================================
 
-        if (req.headers['x-api-key'] !== API_KEY) {
+        if (
+            req.headers['x-api-key'] !== API_KEY
+        ) {
 
-            console.log("❌ Invalid ESP32 API Key");
-
-            return res.status(401).json({
-                error: "Unauthorized"
-            });
+            return res
+                .status(401)
+                .json({
+                    success: false,
+                    error: "Unauthorized"
+                });
         }
 
-
-        // ----------------------------------
-        // RECEIVE ESP32 DATA
-        // ----------------------------------
 
         const d = req.body;
 
-        console.log("\n==============================");
-        console.log("📡 ESP32 Data Received");
-        console.log("==============================");
-
-        console.log(d);
-
-
-        // ----------------------------------
-        // GET VOLTAGE
-        // ----------------------------------
-
-        const v = parseFloat(d.voltage);
-
-        if (Number.isNaN(v)) {
-
-            console.log("❌ Invalid Voltage");
-
-            return res.status(400).json({
-                error: "Invalid voltage value"
-            });
-        }
-
-
-        console.log("Voltage:", v);
-        console.log("Threshold:", vLimit);
-        console.log("Mode:", systemMode);
-
 
         // ==================================
-        // HIGH VOLTAGE PROTECTION
+        // READ VALUES
         // ==================================
 
-        if (v > vLimit) {
+        const v =
+            parseFloat(d.voltage);
 
-            console.log("⚠️ HIGH VOLTAGE DETECTED");
+        const current =
+            parseFloat(d.current || 0);
 
+        const frequency =
+            parseFloat(d.frequency || 0);
 
-            // ------------------------------
-            // AUTO MODE
-            // ------------------------------
+        const powerFactor =
+            parseFloat(d.power_factor || 0);
 
-            if (systemMode === "AUTO") {
+        const activePower =
+            parseFloat(d.active_power || 0);
 
-                states.led1 = "OFF";
-                states.led2 = "OFF";
-                states.led3 = "OFF";
-
-                console.log(
-                    "🛑 AUTO SHUTDOWN EXECUTED"
-                );
-
-
-                sendTelegram(
-
-                    `🚨 HIGH VOLTAGE ALERT!\n\n` +
-
-                    `Voltage: ${v} V\n` +
-
-                    `Threshold: ${vLimit} V\n\n` +
-
-                    `Mode: AUTO\n` +
-
-                    `Action: AUTO-SHUTDOWN EXECUTED.`
-
-                );
-
-            }
-
-
-            // ------------------------------
-            // MANUAL MODE
-            // ------------------------------
-
-            else {
-
-                console.log(
-                    "⚠️ MANUAL MODE - ALERT ONLY"
-                );
-
-
-                await sendTelegram(
-
-                    `⚠️ HIGH VOLTAGE WARNING!\n\n` +
-
-                    `Voltage: ${v} V\n` +
-
-                    `Threshold: ${vLimit} V\n\n` +
-
-                    `Mode: MANUAL\n` +
-
-                    `Action: Manual check required.`
-
-                );
-
-            }
-
-        }
-
-
-        // ==================================
-        // SAVE DATA TO SUPABASE
-        // ==================================
-
-        const { data, error } =
-            await supabase
-                .from('telemetry')
-                .insert([
-                    {
-                        voltage:
-                            d.voltage,
-
-                        current:
-                            d.current,
-
-                        frequency:
-                            d.frequency,
-
-                        power_factor:
-                            d.power_factor,
-
-                        active_power:
-                            d.active_power,
-
-                        max_export_demand:
-                            d.max_export_demand
-                    }
-                ])
-                .select();
-
-
-        // ----------------------------------
-        // CHECK SUPABASE ERROR
-        // ----------------------------------
-
-        if (error) {
-
-            console.error(
-                "❌ Supabase Insert Error:"
+        const maxExportDemand =
+            parseFloat(
+                d.max_export_demand || 0
             );
 
-            console.error(error);
 
-            return res.status(500).json({
+        if (
+            Number.isNaN(v)
+        ) {
 
-                error:
-                    "Supabase insert failed",
-
-                details:
-                    error.message
-            });
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    error: "Invalid voltage"
+                });
         }
+
+
+        // ==================================
+        // GET CONTROL STATE FROM SUPABASE
+        // ==================================
+
+        const control =
+            await getControlState();
+
+
+        const systemMode =
+            control.mode;
+
+        const vLimit =
+            Number(
+                control.voltage_limit
+            );
 
 
         console.log(
-            "✅ Data saved to Supabase"
+            "Voltage:",
+            v
+        );
+
+        console.log(
+            "Mode:",
+            systemMode
+        );
+
+        console.log(
+            "Voltage Limit:",
+            vLimit
         );
 
 
         // ==================================
-        // SEND RESPONSE TO ESP32
+        // HIGH VOLTAGE LOGIC
         // ==================================
 
-        return res.status(200).json({
+        if (
+            v > vLimit
+        ) {
 
-            success: true,
+            console.log(
+                "HIGH VOLTAGE DETECTED"
+            );
 
-            message:
-                "Energy data received",
 
-            voltage: v,
+            // AUTO MODE
+            if (
+                systemMode === "AUTO"
+            ) {
 
-            voltageLimit:
-                vLimit,
+                console.log(
+                    "AUTO MODE -> ESP32 WILL TURN RELAY OFF"
+                );
+
+
+                sendTelegram(
+                    `🚨 HIGH VOLTAGE ALERT!\n` +
+                    `Voltage: ${v} V\n` +
+                    `Threshold: ${vLimit} V\n` +
+                    `Mode: AUTO\n` +
+                    `Action: AUTO SHUTDOWN`
+                );
+            }
+
+
+            // MANUAL MODE
+            else {
+
+                console.log(
+                    "MANUAL MODE -> ALERT ONLY"
+                );
+
+
+                sendTelegram(
+                    `⚠️ HIGH VOLTAGE WARNING!\n` +
+                    `Voltage: ${v} V\n` +
+                    `Threshold: ${vLimit} V\n` +
+                    `Mode: MANUAL\n` +
+                    `Action: Manual check required`
+                );
+            }
+        }
+
+
+        // ==================================
+        // SAVE TELEMETRY TO SUPABASE
+        // ==================================
+
+        const {
+            error:
+            telemetryError
+
+        } =
+            await supabase
+
+                .from(
+                    'telemetry'
+                )
+
+                .insert([
+                    {
+                        voltage:
+                            v,
+
+                        current:
+                            current,
+
+                        frequency:
+                            frequency,
+
+                        power_factor:
+                            powerFactor,
+
+                        active_power:
+                            activePower,
+
+                        max_export_demand:
+                            maxExportDemand
+                    }
+                ]);
+
+
+        if (
+            telemetryError
+        ) {
+
+            console.error(
+                "Telemetry Error:",
+                telemetryError
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    success: false,
+                    error:
+                        telemetryError.message
+                });
+        }
+
+
+        // ==================================
+        // SEND CURRENT CONTROL STATE TO ESP32
+        // ==================================
+
+        res.json({
+
+            success:
+                true,
 
             mode:
-                systemMode,
+                control.mode,
 
-            ...states
+            led1:
+                control.led1,
 
+            led2:
+                control.led2,
+
+            led3:
+                control.led3,
+
+            voltageLimit:
+                Number(
+                    control.voltage_limit
+                ),
+
+            voltage:
+                v
         });
 
 
     } catch (error) {
 
-        // ==================================
-        // SERVER ERROR
-        // ==================================
-
         console.error(
-            "❌ ENERGY DATA SERVER ERROR:"
+            "Energy Data Error:",
+            error
         );
 
-        console.error(error);
 
+        res
+            .status(500)
+            .json({
+                success:
+                    false,
 
-        return res.status(500).json({
-
-            error:
-                "Internal Server Error",
-
-            details:
-                error.message
-        });
+                error:
+                    error.message
+            });
     }
 });
 // ==========================================
@@ -736,31 +765,3 @@ app.get('/api/control-state', (req, res) => {
 // ==========================================
 
 module.exports = app;
-
-
-const PORT =
-    process.env.PORT || 3000;
-
-
-app.listen(
-    PORT,
-    '0.0.0.0',
-    () => {
-
-        console.log(
-            `🚀 Energy Monitoring Server Running`
-        );
-
-        console.log(
-            `📡 Port: ${PORT}`
-        );
-
-        console.log(
-            `⚡ Voltage Threshold: ${vLimit} V`
-        );
-
-        console.log(
-            `🔧 System Mode: ${systemMode}`
-        );
-    }
-);
