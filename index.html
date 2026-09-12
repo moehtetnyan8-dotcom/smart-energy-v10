@@ -7,7 +7,6 @@
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/lucide.min.js"></script>
     
     <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -161,7 +160,7 @@
             <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 40px 40px;"></div>
             <div class="z-10 text-center">
                 <div class="bg-sky-500/20 p-6 rounded-3xl inline-block mb-8 border border-sky-500/30">
-                    <i data-lucide="zap" class="w-16 h-16 text-sky-400"></i>
+                    <i class="bi bi-lightning-charge-fill text-sky-400 text-6xl"></i>
                 </div>
                 <h1 class="text-6xl font-extrabold tracking-tighter text-white mb-4 uppercase">Smart Energy Monitor</h1>
                 <p class="text-sky-300 text-lg font-medium opacity-80 uppercase tracking-[0.4em]">IoT-Based Monitoring & Control</p>
@@ -212,7 +211,7 @@
                 <p class="text-slate-400 text-lg leading-relaxed">Safety cutoff is enabled at 214V. Real-time data streaming and cloud synchronization is standing by for bachelor project execution.</p>
             </div>
             <div class="flex-1 pro-card p-12 text-center">
-                <i data-lucide="shield-check" class="w-20 h-20 text-sky-500 mx-auto mb-8"></i>
+                <i class="bi bi-shield-check text-sky-500 text-6xl"></i>
                 <button onclick="startProject()" class="w-full px-8 py-6 bg-sky-600 text-white text-xl font-black rounded-xl hover:bg-sky-500 transition-all uppercase shadow-2xl">
                     Start Your New Project
                 </button>
@@ -229,7 +228,7 @@
                 <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">Industrial Grade v10.0</p>
             </div>
             <nav class="space-y-2 flex-1">
-                <a href="#MainDashboard" class="nav-link active-link flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg font-semibold dashboardLink jumpLink"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> <i class="bi bi-speedometer"></i> Dashboard</a>
+                <a href="#MainDashboard" class="nav-link active-link flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg font-semibold dashboardLink jumpLink"></i> <i class="bi bi-speedometer"></i> Dashboard</a>
                 <a href="#Guages" class="nav-link flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors monitorLink jumpLink"><i data-lucide="activity" class="w-5 h-5"></i> <i class="bi bi-display"></i> Live Monitoring</a>
                 <a href="#Loadcontrol" class="nav-link flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors loadControlLink jumpLink"><i data-lucide="cpu" class="w-5 h-5"></i> <i class="bi bi-segmented-nav"></i>Load Control</a>
                 <a href="#EnergyHistory" class="nav-link flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors energyLink jumpLink"><i data-lucide="history" class="w-5 h-5"></i> <i class="bi bi-clock-history"></i>Energy History</a>
@@ -237,7 +236,7 @@
                 <a href="#" class="flex items-center gap-3 p-3 text-slate-400 hover:bg-slate-800 rounded-lg transition-colors settingLink"><i data-lucide="settings" class="w-5 h-5"></i> <i class="bi bi-gear-wide-connected"></i>Settings</a>
             </nav>
             <div class="pt-8 border-t border-slate-800">
-                <button onclick="logout()" class="flex items-center gap-3 p-3 text-red-400 hover:bg-red-500/10 w-full rounded-lg transition-colors font-medium"><i class="bi bi-box-arrow-left"></i> Logout Terminal</button>
+                <button onclick="logout()" class="flex items-center gap-3 p-3 text-red-400 hover:bg-red-500/10 w-full rounded-lg transition-colors font-medium"><i data-lucide="log-out" class="w-5 h-5"></i> Logout Terminal</button>
             </div>
         </aside>
 
@@ -374,7 +373,7 @@
                                 <div id="admin-settings" class="hidden space-y-3">
                                     <label class="text-[10px] text-slate-400 uppercase font-bold">Cutoff Threshold (V)</label>
                                     <div class="flex gap-2">
-                                        <input type="number" id="v-set" value="214" class="cyber-input flex-1 p-2 text-sm">
+                                        <input type="number" id="v-set" value="220" class="cyber-input flex-1 p-2 text-sm">
                                         <button onclick="saveThreshold()" class="bg-sky-600 px-4 py-2 rounded-lg text-xs font-bold uppercase">Set</button>
                                     </div>
                                 </div>
@@ -397,7 +396,7 @@
         // Supabase Initialization
         const _supabase = supabase.createClient('https://fjtvytuknssvkfrqcxqb.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqdHZ5dHVrbnNzdmtmcnFjeHFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMjg2OTksImV4cCI6MjA5OTcwNDY5OX0.j7gC7k8vCjf0cZWvKbWax19cJZn0ALEFV5LvzFblyTc');
         const ADMIN_EMAIL = "moehtetnyan8@gmail.com";
-        let isAdmin = false, currentMode = "MANUAL", isLoginMode = true, vLimit = 214;
+        let isAdmin = false, currentMode = "MANUAL", isLoginMode = true, vLimit = 220;
         let chartInstance;
 
         // View Controller
@@ -505,88 +504,161 @@
             }
         }
 
-        // Mode Controller
+        // 11-9-2026
         async function setMode(m) {
-            // Admin check removed - All users can access
-            currentMode = m;
-            document.getElementById('m-man').classList.toggle('active', m === 'MANUAL');
-            document.getElementById('m-auto').classList.toggle('active', m === 'AUTO');
-            document.getElementById('mode-tag').innerText = "MODE: " + m;
-            await fetch('/api/control-led', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ mode: m }) 
-            });
+
+            //alert("Button clicked: " + m);
+
+            try {
+
+                const response = await fetch(
+                    '/api/control-led',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            mode: m
+                        })
+                    }
+                );
+
+                //alert("HTTP Status: " + response.status);
+
+                const data = await response.json();
+
+                console.log("Mode Response:", data);
+
+                currentMode = data.mode;
+
+
+                document
+                    .getElementById('m-man')
+                    .classList.toggle(
+                        'active',
+                        data.mode === 'MANUAL'
+                    );
+
+
+                document
+                    .getElementById('m-auto')
+                    .classList.toggle(
+                        'active',
+                        data.mode === 'AUTO'
+                    );
+
+
+                document
+                    .getElementById('mode-tag')
+                    .innerText =
+                    "MODE: " + data.mode;
+
+
+                document
+                    .getElementById('mode-desc')
+                    .innerText =
+                    data.mode === 'MANUAL'
+                        ? "Loads are controlled manually by the authorized user."
+                        : "Automatic voltage protection is active.";
+
+
+                // ==================================
+                // AUTO -> DISABLE MANUAL SWITCHES
+                // ==================================
+
+                const disableSwitches =
+                    data.mode === "AUTO";
+
+
+                document.getElementById('sw1').disabled =
+                    disableSwitches;
+
+                document.getElementById('sw2').disabled =
+                    disableSwitches;
+
+                document.getElementById('sw3').disabled =
+                    disableSwitches;
+
+
+                console.log(
+                    "Mode changed successfully:",
+                    data.mode
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Mode change error:",
+                    error
+                );
+
+                alert(
+                    "Cannot connect to local server:\n" +
+                    error.message
+                );
+            }
         }
 
+        // new code for relay
         async function ctrl(target, el) {
-    // Admin check removed - All users can access
-        await fetch('/api/control-led', { 
-        method: 'POST', 
-        headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ target, status: el.checked ? "ON" : "OFF" }) 
-        });
-    }
+
+            // AUTO mode မှာ manual switch သုံးလို့မရ
+            if (currentMode !== "MANUAL") {
+                el.checked = !el.checked;
+                alert("Manual load control is disabled in AUTO mode.");
+                return;
+            }
+
+            if (!isAdmin) {
+                el.checked = !el.checked;
+                alert("Hardware write access restricted.");
+                return;
+            }
+
+            const status = el.checked ? "ON" : "OFF";
+
+            try {
+
+                // const response = await fetch('/api/control-led', {   // for vecel
+                const response = await fetch('http://192.168.100.151:3000/api/control-led',{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        target: target,
+                        status: status
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    el.checked = !el.checked;
+                    alert(data.error || "Control failed");
+                    return;
+                }
+
+                console.log("Load Control:", target, status);
+                console.log(data);
+
+            } catch (error) {
+
+                el.checked = !el.checked;
+
+                console.error("Control Error:", error);
+
+                alert("Cannot connect to server.");
+            }
+        }
 
         async function saveThreshold() {
             vLimit = document.getElementById('v-set').value;
             await fetch('/api/control-led', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ newThreshold: vLimit }) });
             alert("V-THRESHOLD SYNCED: " + vLimit + "V");
         }
-
-        /*async function exportCSV() {
-    // Admin check removed - All users can access
-            const { data } = await _supabase.from('telemetry').select('*').order('created_at', { ascending: false }).limit(1000);
-            let csv = "Time,V,A,Hz,PF,W,Demand\n" + data.map(r => `${r.created_at},${r.voltage},${r.current},${r.frequency},${r.power_factor},${r.active_power},${r.max_export_demand}`).join("\n");
-            const a = document.createElement('a'); 
-            a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); 
-            a.download = "Grid_Log.csv"; 
-            a.click();
-        }
-
-        async function exportCSV() {
-            // Check if the user is Admin (based on your previous requirements)
-            if(!isAdmin) return alert("ADMIN ACCESS REQUIRED");
-        
-            // Fetch data from Supabase
-            const { data, error } = await _supabase
-                .from('telemetry')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(1000);
-        
-            if (error) {
-                alert("Export failed: " + error.message);
-                return;
-            }
-        
-            // Header for the file
-            let csv = "Myanmar_Date_Time,Voltage(V),Current(A),Frequency(Hz),Power_Factor,Active_Power(W),Max_Export_Demand(kW)\n";
-        
-            // Loop through data and convert time to Myanmar Timezone
-            data.forEach(r => {
-                // --- THIS IS THE FIX FOR MYANMAR TIME ---
-                const myanmarTime = new Date(r.created_at).toLocaleString('en-GB', {
-                    timeZone: 'Asia/Yangon',
-                    hour12: true
-                }).replace(',', ''); // Removes the comma between date and time
-        
-                // Add the row to the CSV string
-                csv += `${myanmarTime},${r.voltage},${r.current},${r.frequency},${r.power_factor},${r.active_power},${r.max_export_demand}\n`;
-            });
-        
-            // Create the download link
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('href', url);
-            
-            // Name of the file
-            const fileName = `Energy_Report_MMT_${new Date().toLocaleDateString()}.csv`;
-            a.setAttribute('download', fileName);
-            
-            a.click();
-        }*/
 
         async function exportCSV() {
             if(!isAdmin) return alert("ADMIN ACCESS REQUIRED");
@@ -697,21 +769,21 @@
             chartInstance.update('none');
         }
 
-        function togglePassword() {
+       function togglePassword() {
             const p = document.getElementById('pass');
             const icon = document.getElementById('eye-icon');
+
             if (p.type === "password") {
                 p.type = "text";
-                icon.setAttribute('data-lucide', 'eye-off');
+                icon.className = "bi bi-eye-slash";
             } else {
                 p.type = "password";
-                icon.setAttribute('data-lucide', 'eye');
+                icon.className = "bi bi-eye";
             }
-            lucide.createIcons();
         }
 
         function logout() { _supabase.auth.signOut(); location.reload(); }
-        window.onload = () => { lucide.createIcons(); checkSession(); };
+        window.onload = () => {  checkSession(); };
 
         //for focuss section
         const links = document.querySelectorAll('.jumpLink');
