@@ -504,6 +504,146 @@
             }
         }
 
+        async function syncControlState() {
+
+            try {
+
+                const response =
+                    await fetch('/api/control-state');
+
+                const data =
+                    await response.json();
+
+
+                if (!data.success) {
+                    console.log(
+                        "Cannot sync control state"
+                    );
+                    return;
+                }
+
+
+                // ===============================
+                // UPDATE VARIABLES
+                // ===============================
+
+                currentMode =
+                    data.mode;
+
+                vLimit =
+                    Number(
+                        data.voltageLimit
+                    );
+
+
+                // ===============================
+                // UPDATE MODE BUTTONS
+                // ===============================
+
+                document
+                    .getElementById('m-man')
+                    .classList.toggle(
+                        'active',
+                        currentMode === 'MANUAL'
+                    );
+
+
+                document
+                    .getElementById('m-auto')
+                    .classList.toggle(
+                        'active',
+                        currentMode === 'AUTO'
+                    );
+
+
+                // ===============================
+                // UPDATE MODE TAG
+                // ===============================
+
+                document
+                    .getElementById('mode-tag')
+                    .innerText =
+                    "MODE: " + currentMode;
+
+
+                // ===============================
+                // UPDATE MODE DESCRIPTION
+                // ===============================
+
+                document
+                    .getElementById('mode-desc')
+                    .innerText =
+
+                    currentMode === 'MANUAL'
+
+                        ? "Loads are controlled manually by the authorized user."
+
+                        : "Automatic voltage protection is active.";
+
+
+                // ===============================
+                // UPDATE SWITCH STATES
+                // ===============================
+
+                document
+                    .getElementById('sw1')
+                    .checked =
+                    data.led1 === "ON";
+
+
+                document
+                    .getElementById('sw2')
+                    .checked =
+                    data.led2 === "ON";
+
+
+                document
+                    .getElementById('sw3')
+                    .checked =
+                    data.led3 === "ON";
+
+
+                // ===============================
+                // DISABLE SWITCHES IN AUTO
+                // ===============================
+
+                const autoMode =
+                    currentMode === "AUTO";
+
+
+                document
+                    .getElementById('sw1')
+                    .disabled =
+                    autoMode;
+
+
+                document
+                    .getElementById('sw2')
+                    .disabled =
+                    autoMode;
+
+
+                document
+                    .getElementById('sw3')
+                    .disabled =
+                    autoMode;
+
+
+                console.log(
+                    "UI synced from Supabase:",
+                    data
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Control state sync error:",
+                    error
+                );
+            }
+        }
+
         // 11-9-2026
         async function setMode(m) {
 
@@ -527,6 +667,12 @@
                 //alert("HTTP Status: " + response.status);
 
                 const data = await response.json();
+
+                if (data.success) {
+
+                    await syncControlState();
+
+                }
 
                 console.log("Mode Response:", data);
 
@@ -783,7 +929,14 @@
         }
 
         function logout() { _supabase.auth.signOut(); location.reload(); }
-        window.onload = () => {  checkSession(); };
+
+        window.onload = async () => {
+
+            await checkSession();
+
+            await syncControlState();
+
+        };
 
         //for focuss section
         const links = document.querySelectorAll('.jumpLink');
