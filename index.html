@@ -422,11 +422,28 @@
         }
 
         async function checkSession() {
-            const { data: { user } } = await _supabase.auth.getUser();
+
+            const { data: { user } } =
+                await _supabase.auth.getUser();
+        
             if (user) {
-                isAdmin = (user.email.toLowerCase() === ADMIN_EMAIL);
-                document.getElementById('u-name').innerText = user.email.toUpperCase();
-                if(isAdmin) document.getElementById('admin-settings').classList.remove('hidden');
+        
+                // Keep admin detection for functions
+                // that may still need admin access
+                isAdmin =
+                    user.email.toLowerCase() ===
+                    ADMIN_EMAIL.toLowerCase();
+        
+                // Display logged-in user's email
+                document.getElementById('u-name')
+                    .innerText =
+                    user.email.toUpperCase();
+        
+                // ALL logged-in users can see
+                // Voltage Protection settings
+                document.getElementById('admin-settings')
+                    .classList.remove('hidden');
+        
                 showView('info-page');
             }
         }
@@ -754,12 +771,6 @@
             if (currentMode !== "MANUAL") {
                 el.checked = !el.checked;
                 alert("Manual load control is disabled in AUTO mode.");
-                return;
-            }
-
-            if (!isAdmin) {
-                el.checked = !el.checked;
-                alert("Hardware write access restricted.");
                 return;
             }
 
